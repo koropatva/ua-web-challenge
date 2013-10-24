@@ -7,13 +7,14 @@ import org.jsoup.nodes.Element;
 import com.koropatva.blogic.ParseExcpetion;
 import com.koropatva.blogic.interfaces.IEvent;
 import com.koropatva.blogic.interfaces.ISelectorRole;
-import com.koropatva.blogic.services.IteratorLogic;
+import com.koropatva.blogic.services.IteratorWorker;
+import com.koropatva.blogic.services.SelectorRoleFactory;
 
 public class SimpleAttributeWhereValueEndWithCSS3 implements ISelectorRole {
 
-	public static final String	PATTERN	= String.format(
-												"%s\\[[[\\p{Blank}]{1}]?[^\\p{Blank}\\=\\^\\|]*[[\\p{Blank}]{1}]?\\$\\=[[\\p{Blank}]{1}]?[\"]?[^\\p{Blank}\\=\\~\\|]*[\"]?[[\\p{Blank}]{1}]?\\]$",
-												SimpleElement.PATTERN);
+	public static final String	PATTERN	= String.format("^%1$s\\[%2$s%1$s%2$s\\$\\=%2$s[\"]?%3$s[\"]?%2$s\\]$",
+												SelectorRoleFactory.CLASS_NAME_REGEX, SelectorRoleFactory.BLANK_REGEX,
+												SelectorRoleFactory.VALUE_REGEX);
 
 	@Override
 	public void checkClass(final String selectedClass, Element element) throws ParseExcpetion {
@@ -28,20 +29,20 @@ public class SimpleAttributeWhereValueEndWithCSS3 implements ISelectorRole {
 					.trim();
 		final String currentElement = selectedClass.substring(0, selectedClass.indexOf("[")).trim();
 
-		IteratorLogic.iteration(element.children(), new IEvent() {
+		IteratorWorker.iteration(element.children(), new IEvent() {
 			public void event(Element element) throws ParseExcpetion {
 				if (currentElement != null && !currentElement.isEmpty() && element.nodeName().equals(currentElement)
 						|| (currentElement == null || currentElement.isEmpty())) {
 					Attributes attributes = element.attributes();
 					for (Attribute attribute : attributes.asList()) {
-						if (attribute.getKey().equals(currentAttribute)
-								&& attribute.getValue().endsWith(currentValue)) {
-							throw new ParseExcpetion(selectedClass);
+						if (attribute.getKey().equals(currentAttribute) && attribute.getValue().endsWith(currentValue)) {
+							// We have found element with current selector
+							throw new ParseExcpetion(selectedClass, element);
 						}
 					}
 				}
 				if (element.children() != null) {
-					IteratorLogic.iteration(element.children(), this);
+					IteratorWorker.iteration(element.children(), this);
 				}
 			}
 		});

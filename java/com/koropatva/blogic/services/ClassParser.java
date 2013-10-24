@@ -53,7 +53,7 @@ public class ClassParser {
 
 	public void fillClasses(Document doc) throws IOException, ParseExcpetion {
 
-		IteratorLogic.iteration(doc.head().children(), new IEvent() {
+		IteratorWorker.iteration(doc.head().children(), new IEvent() {
 			public void event(Element element) {
 				try {
 					String href = element.attr("href");

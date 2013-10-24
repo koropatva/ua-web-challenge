@@ -8,34 +8,24 @@ import com.koropatva.blogic.interfaces.ISelectorRole;
 import com.koropatva.blogic.services.IteratorWorker;
 import com.koropatva.blogic.services.SelectorRoleFactory;
 
-public class ElementMoreElement implements ISelectorRole {
+public class ElementPlusElement implements ISelectorRole {
 
-	public static final String	PATTERN	= String.format("^[\\.?\\#?]?%1$s%2$s[\\>]{1}%2$s[\\.?\\#?]?%1$s",
+	public static final String	PATTERN	= String.format("^[\\.?\\#?]?%1$s%2$s[\\+]{1}%2$s[\\.?\\#?]?%1$s",
 												SelectorRoleFactory.CLASS_NAME_REGEX, SelectorRoleFactory.BLANK_REGEX);
 
 	@Override
 	public void checkClass(final String selectedSelector, Element element) throws ParseExcpetion {
 		final String currentSelector = selectedSelector;
-		final String firstPart = currentSelector.substring(0, currentSelector.indexOf(">")).trim();
-		final String secondPart = currentSelector.substring(currentSelector.indexOf(">") + 1).trim();
+		final String firstPart = currentSelector.substring(0, currentSelector.indexOf("+")).trim();
+		final String secondPart = currentSelector.substring(currentSelector.indexOf("+") + 1).trim();
 
 		IteratorWorker.iteration(element.children(), new IEvent() {
 
 			public void event(Element element) throws ParseExcpetion {
-				// Checking current element and first part of selector
-				if (checkPart(firstPart, element)) {
-					// Checking children of current element and second part of
-					// selector
-					IteratorWorker.iteration(element.children(), new IEvent() {
-
-						@Override
-						public void event(Element element) throws ParseExcpetion {
-							if (checkPart(secondPart, element)) {
-								// We have found element
-								throw new ParseExcpetion(selectedSelector, element);
-							}
-						}
-					});
+				Element nextElementSibling = element.nextElementSibling();
+				if (nextElementSibling != null && checkPart(firstPart, element)
+						&& checkPart(secondPart, nextElementSibling)) {
+					throw new ParseExcpetion(selectedSelector, element);
 				}
 				if (element.children() != null) {
 					IteratorWorker.iteration(element.children(), this);

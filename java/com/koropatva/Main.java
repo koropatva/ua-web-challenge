@@ -22,9 +22,9 @@ public class Main {
 
 		ClassParser classParser = new ClassParser(url, localSite);
 
-		SelectorRoleFactory selectorRoleFactory = new SelectorRoleFactory(classParser);
-
 		classParser.fillClasses(doc);
+
+		SelectorRoleFactory selectorRoleFactory = new SelectorRoleFactory(classParser);
 
 		System.out.println("List of classes");
 		int number = 0;
@@ -39,13 +39,6 @@ public class Main {
 			number++;
 			System.out.println(number + " " + newClass);
 		}
-		//
-		// number = 0;
-		// for (String newClass : classParser.getClassesMapping().keySet()) {
-		// number++;
-		// System.out.println(number + " " +
-		// classParser.getClassesMapping().get(newClass));
-		// }
 	}
 
 	private static Document createDocument(String url, boolean localSite) throws IOException {
