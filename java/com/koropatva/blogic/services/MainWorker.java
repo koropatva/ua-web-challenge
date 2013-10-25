@@ -14,6 +14,7 @@ public class MainWorker {
 
 	private static final String	L				= "l";
 	private static final String	W				= "w";
+	private static final String	S				= "s";
 	private static final String	SEPARATOR		= ">";
 
 	private Map<String, String>	commands		= new HashMap<String, String>() {
@@ -21,12 +22,15 @@ public class MainWorker {
 													{
 														put(W, "global(WWW) location of file for parsing");
 														put(L, "local location of file for parsing");
+														put(S, "parse site");
 													}
 												};
 
 	private Set<String>			urlsForParsing	= new HashSet<String>();
 
 	private boolean				localSite;
+
+	private boolean				parseSite;
 
 	public void parsing(String[] args) {
 		if (notValidEnteredArgs(args)) {
@@ -64,18 +68,21 @@ public class MainWorker {
 		boolean urls = false;
 		boolean locations = false;
 		for (String arg : args) {
-			if (arg.equals(W)) {
+			if (arg.equalsIgnoreCase(W)) {
 				localSite = false;
 				locations = true;
-			} else if (arg.equals(L)) {
+			} else if (arg.equalsIgnoreCase(L)) {
 				localSite = true;
 				locations = true;
-			} else if (arg.equals(SEPARATOR)) {
+			} else if (arg.equalsIgnoreCase(S)) {
+				parseSite = true;
+			} else if (arg.equalsIgnoreCase(SEPARATOR)) {
 				urls = true;
 			} else if (urls) {
 				if (localSite) {
 					if (!new File(arg).canRead()) {
-						System.out.println(String.format("ATTENTION!!!\n Can't find file. \n Path '%s' is not correct.", arg));
+						System.out.println(String.format(
+								"ATTENTION!!!\n Can't find file. \n Path '%s' is not correct.", arg));
 						System.out.println();
 						return true;
 					}
@@ -114,6 +121,7 @@ public class MainWorker {
 		System.out.println(String.format("Main structure: list of attributes %s list of url(local path) for sites",
 				SEPARATOR));
 		System.out.println(String.format("One attribute of '%s' or '%s' is required!", L, W));
+		System.out.println(String.format("It is not possible to use '%s', '%s' attributes together!", L, W));
 		System.out.println("For example : ");
 		System.out
 				.println(String.format(
