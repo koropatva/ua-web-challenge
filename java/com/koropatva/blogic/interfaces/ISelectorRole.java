@@ -2,10 +2,10 @@ package com.koropatva.blogic.interfaces;
 
 import org.jsoup.nodes.Element;
 
-import com.koropatva.blogic.ParseExcpetion;
+import com.koropatva.blogic.exceptions.ParseException;
 
-public interface ISelectorRole {
-	void checkClass(final String selectedClass, Element element) throws ParseExcpetion;
+public interface ISelectorRole extends IEvent {
+	void checkClass(final String selectedClass, Element element) throws ParseException;
 
 	String getPattern();
 }
