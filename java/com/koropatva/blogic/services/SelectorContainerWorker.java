@@ -19,35 +19,35 @@ import com.koropatva.model.SelectorsContainer;
 
 public class SelectorContainerWorker {
 
-	private SelectorsContainer	selectorsContainer	= new SelectorsContainer();
+	private SelectorsContainer selectorsContainer = new SelectorsContainer();
 
-	private String				baseUrl;
+	private String baseUrl;
 
-	private String				url;
+	private String url;
 
-	private Document			document;
+	private Document document;
 
 	// Flag for show from where system will get info about site
-	private boolean				localSite;
+	private boolean localSite;
 
 	public SelectorContainerWorker(String url, boolean localSite) {
 		this.url = url;
 		this.localSite = localSite;
 		if (!localSite) {
 			baseUrl = "http://";
-			if (url.startsWith(baseUrl)) {
-				url = url.replace(baseUrl, "");
-				if (!url.startsWith("www.")) {
-					url = "www." + url;
+			if (!this.url.startsWith(baseUrl)) {
+				if (!this.url.startsWith("www.")) {
+					this.url = "www." + this.url;
 				}
+				this.url = baseUrl + this.url;
 			}
-			if (url.indexOf("/") >= 0) {
-				this.baseUrl = baseUrl + url.substring(0, url.indexOf("/"));
+			if (this.url.indexOf("/") >= 0) {
+				this.baseUrl = baseUrl + this.url.substring(0, this.url.indexOf("/"));
 			} else {
-				this.baseUrl = baseUrl + url;
+				this.baseUrl = baseUrl + this.url;
 			}
 		} else {
-			baseUrl = url.substring(0, url.lastIndexOf("/"));
+			baseUrl = this.url.substring(0, this.url.lastIndexOf("/"));
 		}
 
 		fillDocument();
@@ -64,17 +64,20 @@ public class SelectorContainerWorker {
 		}
 	}
 
-	public SelectorsContainer fillSeparatorsContainer() throws IOException, ParseException {
+	public SelectorsContainer fillSeparatorsContainer() throws IOException,
+			ParseException {
 		// Find all link elements on the page and try to get classes from it
 		IteratorWorker.iteration(document.head().children(), new IEvent() {
 			public void event(Element element) {
 				try {
 					String href = element.attr("href");
 					if (element.nodeName().equals("link")
-							&& (href.contains(".css") || element.attr("type").equals("text/css"))) {
+							&& (href.contains(".css") || element.attr("type")
+									.equals("text/css"))) {
 
 						fillClassesFromCSSTable(href);
-					} else if (element.nodeName().equals("style") && element.attr("type").equals("text/css")) {
+					} else if (element.nodeName().equals("style")
+							&& element.attr("type").equals("text/css")) {
 						fillClassesFromStyleElement(element.data());
 					}
 
@@ -95,7 +98,8 @@ public class SelectorContainerWorker {
 		System.out.println(inputString);
 	}
 
-	private void fillClassesFromCSSTable(String href) throws MalformedURLException {
+	private void fillClassesFromCSSTable(String href)
+			throws MalformedURLException {
 		try {
 			href = generateUrlForCSSTable(href);
 
@@ -111,8 +115,11 @@ public class SelectorContainerWorker {
 			String inputString;
 			String style = "";
 			while ((inputString = bufferedReader.readLine()) != null) {
-				if (style.isEmpty() && inputString.contains("{") && inputString.contains("}")) {
-					addClasses(inputString.substring(0, inputString.indexOf("{")), href);
+				if (style.isEmpty() && inputString.contains("{")
+						&& inputString.contains("}")) {
+					addClasses(
+							inputString.substring(0, inputString.indexOf("{")),
+							href);
 				} else {
 					style += inputString;
 					if (style.contains("{") && style.contains("}")) {
@@ -155,7 +162,8 @@ public class SelectorContainerWorker {
 				// Add class for list of checking
 				selectorsContainer.getCssTables().add(cssTable);
 				selectorsContainer.getSelectors().add(selectedNewClass);
-				selectorsContainer.getSelectorMapping().put(selectedNewClass, cssTable);
+				selectorsContainer.getSelectorMapping().put(selectedNewClass,
+						cssTable);
 			}
 		}
 	}
