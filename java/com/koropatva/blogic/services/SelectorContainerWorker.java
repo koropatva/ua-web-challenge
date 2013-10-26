@@ -1,16 +1,9 @@
 package com.koropatva.blogic.services;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.MalformedURLException;
-import java.net.URL;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import com.koropatva.blogic.exceptions.ParseException;
@@ -21,78 +14,43 @@ public class SelectorContainerWorker {
 
 	private SelectorsContainer selectorsContainer = new SelectorsContainer();
 
-	private String baseUrl;
+	private DocumentWorker documentWorker;
 
-	private String url;
-
-	private Document document;
-
-	// Flag for show from where system will get info about site
-	private boolean localSite;
-
-	public SelectorContainerWorker(String url, boolean localSite) {
-		this.url = url;
-		this.localSite = localSite;
-		if (!localSite) {
-			baseUrl = "http://";
-			if (!this.url.startsWith(baseUrl)) {
-				if (!this.url.startsWith("www.")) {
-					this.url = "www." + this.url;
-				}
-				this.url = baseUrl + this.url;
-			}
-			if (this.url.indexOf("/") >= 0) {
-				this.baseUrl = baseUrl + this.url.substring(0, this.url.indexOf("/"));
-			} else {
-				this.baseUrl = baseUrl + this.url;
-			}
-		} else {
-			baseUrl = this.url.substring(0, this.url.lastIndexOf("/"));
-		}
-
-		fillDocument();
-	}
-
-	private void fillDocument() {
-		try {
-			if (localSite)
-				this.document = Jsoup.parse(new File(url), "UTF-8", "");
-			else
-				this.document = Jsoup.connect(url).get();
-		} catch (IOException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
+	public SelectorContainerWorker(DocumentWorker documentWorker) {
+		this.documentWorker = documentWorker;
 	}
 
 	public SelectorsContainer fillSeparatorsContainer() throws IOException,
 			ParseException {
 		// Find all link elements on the page and try to get classes from it
-		IteratorWorker.iteration(document.head().children(), new IEvent() {
-			public void event(Element element) {
-				try {
-					String href = element.attr("href");
-					if (element.nodeName().equals("link")
-							&& (href.contains(".css") || element.attr("type")
-									.equals("text/css"))) {
+		IteratorWorker.iteration(
+				documentWorker.getDocument().head().children(), new IEvent() {
+					public void event(Element element) {
+						try {
+							String href = element.attr("href");
+							if (element.nodeName().equals("link")
+									&& (href.contains(".css") || element.attr(
+											"type").equals("text/css"))) {
 
-						fillClassesFromCSSTable(href);
-					} else if (element.nodeName().equals("style")
-							&& element.attr("type").equals("text/css")) {
-						fillClassesFromStyleElement(element.data());
+								fillClassesFromCSSTable(href);
+							} else if (element.nodeName().equals("style")
+									&& element.attr("type").equals("text/css")) {
+								fillClassesFromStyleElement(element.data());
+							}
+
+						} catch (IOException e) {
+							throw new RuntimeException(e.getMessage(), e);
+						}
 					}
-
-				} catch (IOException e) {
-					throw new RuntimeException(e.getMessage(), e);
-				}
-			}
-		});
+				});
 		return selectorsContainer;
 	}
 
 	private void fillClassesFromStyleElement(String inputString) {
 		// Cut style element and take all classes(separators)
 		while (inputString.contains("{") && inputString.contains("}")) {
-			addClasses(inputString.substring(0, inputString.indexOf("{")), url);
+			addClasses(inputString.substring(0, inputString.indexOf("{")),
+					documentWorker.getUrl());
 			inputString = inputString.substring(inputString.indexOf("}") + 1);
 		}
 		System.out.println(inputString);
@@ -100,17 +58,9 @@ public class SelectorContainerWorker {
 
 	private void fillClassesFromCSSTable(String href)
 			throws MalformedURLException {
+		BufferedReader bufferedReader = null;
 		try {
-			href = generateUrlForCSSTable(href);
-
-			Reader inputStream;
-			if (localSite) {
-				inputStream = new FileReader(new File(href));
-			} else {
-				URL hrefUrl = new URL(href);
-				inputStream = new InputStreamReader(hrefUrl.openStream());
-			}
-			BufferedReader bufferedReader = new BufferedReader(inputStream);
+			bufferedReader = documentWorker.getBufferedReader(href);
 
 			String inputString;
 			String style = "";
@@ -129,26 +79,15 @@ public class SelectorContainerWorker {
 				}
 			}
 		} catch (IOException e) {
-		}
-	}
-
-	private String generateUrlForCSSTable(String href) {
-		if (href.startsWith("/")) {
-			href = baseUrl + href;
-		}
-		if (href.startsWith("./")) {
-			href = baseUrl + href.replaceFirst(".", "");
-		}
-		if (href.startsWith("../")) {
-			String newUrl = new String(url);
-			newUrl = newUrl.substring(0, newUrl.lastIndexOf("/"));
-			while (href.startsWith("../")) {
-				href = href.substring(3);
-				newUrl = newUrl.substring(0, newUrl.lastIndexOf("/"));
+		} finally {
+			if (bufferedReader != null) {
+				try {
+					bufferedReader.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e.getMessage(), e);
+				}
 			}
-			href = newUrl + "/" + href;
 		}
-		return href;
 	}
 
 	private void addClasses(String newClasses, String cssTable) {
@@ -176,10 +115,6 @@ public class SelectorContainerWorker {
 			return false;
 		}
 		return true;
-	}
-
-	public Document getDocument() {
-		return document;
 	}
 
 }
