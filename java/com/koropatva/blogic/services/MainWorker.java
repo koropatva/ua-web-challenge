@@ -22,12 +22,12 @@ public class MainWorker {
 	private Map<String, String> commands = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 		{
-			put(W, "global(WWW) location of file for parsing");
-			put(L, "local location of file for parsing");
+			put(W, "global(WWW) location of site(s) for parsing");
+			put(L, "local location of file(s) for parsing");
 			put(S,
 					String.format(
 							"parse site. Can use one of next inner attributes : %s - depth; %s - page number. "
-									+ "%s without attributes will parse all pages on the site.",
+									+ "Attribute '%s' without attributes will parse all pages on the site.",
 							D, N, S));
 		}
 	};
@@ -72,8 +72,7 @@ public class MainWorker {
 			}
 		} else {
 			for (String url : urlsForParsing) {
-				DocumentWorker documentWorker = new DocumentWorker(url,
-						localSite);
+				DocumentWorker documentWorker = new DocumentWorker(url, localSite);
 				startParsing(documentWorker);
 			}
 		}
@@ -197,15 +196,27 @@ public class MainWorker {
 		System.out.println("For example : ");
 		System.out
 				.println(String
-						.format("\t%s %s uawebchallenge.com http://docs.oracle.com/javase/6/docs/api/java/util/Map.html",
+						.format("\t%s %s uawebchallenge.com http://www.oracle.com/index.html ---> will parse list of sites",
 								W, SEPARATOR));
 		System.out.println(String.format(
-				"\t%s %s file:///C:/Users/user/workspace/TestData/Pattern.htm",
-				L, SEPARATOR));
-		System.out.println(String.format("\t%s(%s4) %s uawebchallenge.com", S,
-				N, SEPARATOR));
-		System.out.println(String.format("\t%s(%s2) %s uawebchallenge.com", S,
-				D, SEPARATOR));
+				"\t%s %s uawebchallenge.com ---> will parse current page", W,
+				SEPARATOR));
+		System.out
+				.println(String
+						.format("\t%s %s file:///C:/Users/user/workspace/TestData/Pattern.htm ---> will parse current page on local machine",
+								L, SEPARATOR));
+		System.out
+				.println(String
+						.format("\t%s %s(%s4) %s uawebchallenge.com  ---> will parse first 4 pages(what will find) on current site",
+								W, S, N, SEPARATOR));
+		System.out
+				.println(String
+						.format("\t%s %s(%s2) %s uawebchallenge.com ---> will parse all pages in the site, where depth for scanning equals 2. ",
+								W, S, D, SEPARATOR));
+		System.out
+				.println(String
+						.format("\t%s %s %s uawebchallenge.com ---> will parse all pages on the site",
+								W, S, SEPARATOR));
 		System.out.println();
 		System.out.println("List of Attributes: ");
 		for (String iterable : commands.keySet()) {

@@ -56,7 +56,10 @@ public class DocumentWorker {
 			else
 				this.document = Jsoup.connect(url).get();
 		} catch (IOException e) {
-			throw new RuntimeException(e.getMessage(), e);
+			throw new RuntimeException(
+					String.format(
+							"ATTENTION!!!! System can't find next file/URL '%s'. \nTry to check it before calling method.",
+							url));
 		}
 	}
 
